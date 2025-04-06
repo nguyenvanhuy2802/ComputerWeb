@@ -31,10 +31,12 @@ public class JwtFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
 
-        if (request.getRequestURI().startsWith("/api/auth/register")) {
-            chain.doFilter(request, response);  // Bỏ qua kiểm tra token cho yêu cầu đăng ký
+        if (request.getRequestURI().startsWith("/api/auth/register") ||
+                request.getRequestURI().startsWith("/api/auth/login")) {
+            chain.doFilter(request, response);  // Bỏ qua token cho login & register
             return;
         }
+
         String authHeader = request.getHeader("Authorization");
 
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
