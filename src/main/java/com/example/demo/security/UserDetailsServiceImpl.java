@@ -25,6 +25,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         UserDTO userDTO = userService.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
+        System.out.println("User password: " + userDTO.getPassword()); // log tạm thời
 
         return User.builder()
                 .username(userDTO.getUsername())
