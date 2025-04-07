@@ -42,4 +42,29 @@ public class UserController {
     public void deleteUser(@PathVariable Long id) {
         userService.deleteById(id);
     }
+    @GetMapping("/paging")
+    public List<UserDTO> getUserPaging(
+            @RequestParam int limit,
+            @RequestParam int offset
+    ) {
+        return userService.getPart(limit, offset);
+    }
+
+    @GetMapping("/paging/sort")
+    public List<UserDTO> getUserPagingWithSort(
+            @RequestParam int limit,
+            @RequestParam int offset,
+            @RequestParam String orderBy,
+            @RequestParam(defaultValue = "asc") String orderDir
+    ) {
+        return userService.getOrderedPart(limit, offset, orderBy, orderDir);
+    }
+
+    @PutMapping("/{id}/change-password")
+    public void changePassword(
+            @PathVariable Long id,
+            @RequestParam String newPassword
+    ) {
+        userService.changePassword(id, newPassword);
+    }
 }

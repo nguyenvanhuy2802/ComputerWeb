@@ -6,6 +6,10 @@ import com.example.demo.models.User;
 import com.example.demo.repositories.UserRepository;
 import com.example.demo.services.IUserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -53,6 +57,34 @@ public class UserService implements IUserService {
     }
 
     @Override
+    public List<UserDTO> getPart(int limit, int offset) {
+        Pageable pageable = PageRequest.of(offset, limit);
+        return userRepository.findAll(pageable)
+                .stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
+
+    @Override
+    public List<UserDTO> getOrderedPart(int limit, int offset, String orderBy, String orderDir) {
+        Sort.Direction direction = orderDir.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
+        Pageable pageable = PageRequest.of(offset / limit, limit, Sort.by(direction, orderBy));
+        Page<User> userPage = userRepository.findAll(pageable);
+        return userPage.stream().map(this::convertToDTO).collect(Collectors.toList());
+    }
+
+    @Override
+    public void changePassword(long userId, String newPassword) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User không tồn tại"));
+
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+    }
+
+
+    @Override
     public UserDTO save(UserDTO userDTO) {
         User user = new User();
         user.setName(userDTO.getName());
@@ -75,7 +107,6 @@ public class UserService implements IUserService {
         user.setEmail(userDTO.getEmail());
         user.setPhone(userDTO.getPhone());
         user.setAddress(userDTO.getAddress());
-        user.setUsername(userDTO.getUsername());
         user.setProfileImage(userDTO.getProfileImage());
 
         return convertToDTO(userRepository.save(user));

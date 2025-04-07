@@ -10,6 +10,9 @@ public interface IUserService {
     Optional<UserDTO> findByUsername(String username);
     Optional<UserDTO> findByEmail(String email);
     List<UserDTO> searchByName(String name);
+    List<UserDTO> getPart(int limit, int offset);
+    List<UserDTO> getOrderedPart(int limit, int offset, String orderBy, String orderDir);
+    void changePassword(long userId, String newPassword);
     UserDTO save(UserDTO userDTO);
     UserDTO update(Long userId, UserDTO userDTO);
     void deleteById(Long userId);
