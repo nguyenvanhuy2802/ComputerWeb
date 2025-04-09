@@ -17,7 +17,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     private final IUserService userService;
 
     @Autowired
-    public UserDetailsServiceImpl(IUserService  userService) {
+    public UserDetailsServiceImpl(IUserService userService) {
         this.userService = userService;
     }
 
@@ -25,12 +25,13 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         UserDTO userDTO = userService.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
-        System.out.println("User password: " + userDTO.getPassword()); // log tạm thời
 
-        return User.builder()
-                .username(userDTO.getUsername())
-                .password(userDTO.getPassword())
-                .authorities(Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + userDTO.getRole().name())))
-                .build();
+//        return User.builder()
+//                .username(userDTO.getUsername())
+//                .password(userDTO.getPassword())
+//                .authorities(Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + userDTO.getRole().name())))
+//                .build();
+        var authorities = Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + userDTO.getRole().name()));
+        return new CustomUserDetails(userDTO, authorities);
     }
 }

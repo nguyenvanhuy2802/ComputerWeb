@@ -38,35 +38,53 @@ public class AuthController {
     public ResponseEntity<?> login(@RequestBody AuthRequest authRequest) {
         try {
             authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(authRequest.getUsername(), authRequest.getPassword()));
+                    new UsernamePasswordAuthenticationToken(
+                            authRequest.getUsername(), authRequest.getPassword()
+                    )
+            );
 
             UserDetails userDetails = userDetailsService.loadUserByUsername(authRequest.getUsername());
             String token = jwtUtil.generateToken(userDetails.getUsername());
 
-            return ResponseEntity.ok(new AuthResponse(token));
+            return ResponseEntity.ok(new AuthResponse(true, "Đăng nhập thành công", token));
         } catch (BadCredentialsException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Sai tài khoản hoặc mật khẩu");
+            return ResponseEntity.status(401).body(new AuthResponse(false, "Sai tài khoản hoặc mật khẩu", null));
         } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Lỗi xác thực: " + e.getMessage());
+            return ResponseEntity.status(500).body(new AuthResponse(false, "Lỗi hệ thống: " + e.getMessage(), null));
         }
     }
 
     @PostMapping("/register")
-    public AuthResponse register(@RequestBody UserDTO userDTO) {
-        // Kiểm tra nếu username hoặc email đã tồn tại
-        if (userService.findByUsername(userDTO.getUsername()).isPresent() ||
-                userService.findByEmail(userDTO.getEmail()).isPresent()) {
-            throw new RuntimeException("Username or Email already exists");
+    public ResponseEntity<?> register(@RequestBody UserDTO userDTO) {
+        try {
+            if (userService.findByUsername(userDTO.getUsername()).isPresent()) {
+                return ResponseEntity.badRequest()
+                        .body(new AuthResponse(false, "Tên đăng nhập đã tồn tại", null));
+            }
+
+            if (userService.findByEmail(userDTO.getEmail()).isPresent()) {
+                return ResponseEntity.badRequest()
+                        .body(new AuthResponse(false, "Email đã tồn tại", null));
+            }
+
+            UserDTO savedUser = userService.save(userDTO);
+            String token = jwtUtil.generateToken(savedUser.getUsername());
+
+            return ResponseEntity.ok(new AuthResponse(true, "Đăng ký thành công", token));
+        } catch (Exception e) {
+            return ResponseEntity.status(500)
+                    .body(new AuthResponse(false, "Đăng ký thất bại: " + e.getMessage(), null));
         }
-
-        // Lưu người dùng vào cơ sở dữ liệu
-        UserDTO savedUser = userService.save(userDTO);
-
-        // Tạo JWT token ngay sau khi đăng ký thành công
-        String token = jwtUtil.generateToken(savedUser.getUsername());
-
-        return new AuthResponse(token);
     }
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout() {
+        // Client sẽ xoá token sau khi gọi API này
+        return ResponseEntity.ok("Đăng xuất thành công");
+    }
+
+//localStorage.removeItem("token");
+//router.navigate(['/login']);
+
 
 }
