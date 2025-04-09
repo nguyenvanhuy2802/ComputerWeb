@@ -83,13 +83,18 @@ public class UserService implements IUserService {
     }
 
     @Override
-    public void changePassword(long userId, String newPassword) {
+    public void changePassword(long userId, String oldPassword, String newPassword) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User không tồn tại"));
+                .orElseThrow(() -> new RuntimeException("User không tồn tại với ID: " + userId));
+
+        if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
+            throw new IllegalArgumentException("Mật khẩu cũ không đúng");
+        }
 
         user.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(user);
     }
+
 
 
     @Override
