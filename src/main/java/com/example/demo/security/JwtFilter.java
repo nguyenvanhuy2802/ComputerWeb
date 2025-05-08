@@ -31,11 +31,11 @@ public class JwtFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
 
-        String path = request.getServletPath();
-        if (path.equals("/api/auth/register") || path.equals("/api/auth/login")) {
-            chain.doFilter(request, response);
-            return;
-        }
+//        String path = request.getServletPath();
+//        if (path.equals("/api/auth/register") || path.equals("/api/auth/login")) {
+//            chain.doFilter(request, response);
+//            return;
+//        }
 
         String authHeader = request.getHeader("Authorization");
 
