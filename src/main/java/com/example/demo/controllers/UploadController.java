@@ -1,14 +1,14 @@
 package com.example.demo.controllers;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.*;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
-
 import java.util.Map;
-@CrossOrigin(origins = "http://localhost:3000")
+
 @RestController
 @RequestMapping("/api/auth")
 public class UploadController {
@@ -26,22 +26,31 @@ public class UploadController {
             headers.set("Authorization", "Client-ID " + imgurClientId);
 
             MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
-            body.add("image", file.getResource());
+            body.add("image", new ByteArrayResource(file.getBytes()) {
+                @Override
+                public String getFilename() {
+                    return file.getOriginalFilename();
+                }
+            });
+
 
             HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
 
             RestTemplate restTemplate = new RestTemplate();
             ResponseEntity<Map> response = restTemplate.postForEntity(url, requestEntity, Map.class);
 
-            if (response.getStatusCode() == HttpStatus.OK) {
-                Map data = (Map) ((Map) response.getBody().get("data"));
+            if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null && response.getBody().get("data") != null) {
+                Map data = (Map) response.getBody().get("data");
                 String link = (String) data.get("link");
                 return ResponseEntity.ok(Map.of("link", link));
             } else {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Imgur upload failed");
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(Map.of("error", "Imgur upload failed or no data returned"));
             }
 
+
         } catch (Exception e) {
+            System.out.println("Uploading file: " + file.getOriginalFilename());
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Upload failed: " + e.getMessage());
         }

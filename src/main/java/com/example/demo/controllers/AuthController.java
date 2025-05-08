@@ -67,7 +67,7 @@ public class AuthController {
                         .body(new AuthResponse(false, "Email đã tồn tại", null));
             }
 
-            UserDTO savedUser = userService.save(userDTO);
+            UserDTO savedUser = userService.save(userDTO);  
             String token = jwtUtil.generateToken(savedUser.getUsername());
 
             return ResponseEntity.ok(new AuthResponse(true, "Đăng ký thành công", token));

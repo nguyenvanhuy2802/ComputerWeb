@@ -13,4 +13,6 @@ public interface IProductReviewService {
     ProductReviewDTO createReview(ProductReviewDTO productReviewDTO);
     ProductReviewDTO updateReview(Long reviewId, ProductReviewDTO productReviewDTO);
     void deleteReview(Long reviewId);
+    double getAverageRatingByProductId(Long productId);
+
 }
