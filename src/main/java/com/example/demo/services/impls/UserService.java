@@ -42,14 +42,7 @@ public class UserService implements IUserService {
     @Override
     public Optional<UserDTO> findByUsername(String username) {
         return userRepository.findByUsername(username)
-                .map(user -> {
-                    UserDTO dto = new UserDTO();
-                    dto.setUserId(user.getUserId());
-                    dto.setUsername(user.getUsername());
-                    dto.setPassword(user.getPassword());
-                    dto.setRole(user.getRole());
-                    return dto;
-                });
+                .map(this::convertToDTO);
     }
 
     @Override

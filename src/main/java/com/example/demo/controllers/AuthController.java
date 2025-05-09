@@ -1,11 +1,11 @@
 package com.example.demo.controllers;
 
-import com.example.demo.dtos.AuthRequest;
-import com.example.demo.dtos.AuthResponse;
-import com.example.demo.dtos.UserDTO;
+import com.example.demo.dtos.*;
 import com.example.demo.security.JwtUtil;
 import com.example.demo.security.UserDetailsServiceImpl;
 import com.example.demo.services.IUserService;
+import com.example.demo.services.impls.ForgotPasswordService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,10 +13,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -33,6 +30,9 @@ public class AuthController {
 
     @Autowired
     private IUserService userService;
+
+    @Autowired
+    private ForgotPasswordService forgotPasswordService;
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody AuthRequest authRequest) {
@@ -82,9 +82,34 @@ public class AuthController {
         // Client sẽ xoá token sau khi gọi API này
         return ResponseEntity.ok("Đăng xuất thành công");
     }
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(@RequestBody @Valid EmailReq email) {
+        forgotPasswordService.generateAndSendOtp(email.getEmail());
+        return ResponseEntity.ok("OTP đã được gửi tới email");
+    }
 
-//localStorage.removeItem("token");
-//router.navigate(['/login']);
+    @PostMapping("/verify-otp")
+    public ResponseEntity<?> verifyOtp(@RequestBody @Valid VerifyOtpReq verifyOtpReq) {
+        try {
+            String tempToken = forgotPasswordService.verifyOtpAndGenerateTempToken(verifyOtpReq.getEmail(), verifyOtpReq.getOtp());
+            return ResponseEntity.ok("OTP hợp lệ. Temp Token: " + tempToken);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
 
 
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@RequestBody @Valid ResetPassReq resetPassReq) {
+        try {
+            forgotPasswordService.resetPassword(resetPassReq.getEmail(), resetPassReq.getTempToken(),resetPassReq.getNewPassword());
+            return ResponseEntity.ok("Mật khẩu đã được thay đổi thành công");
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
 }
+
+
+
+
