@@ -97,6 +97,14 @@ public class ProductReviewService implements IProductReviewService {
         productReviewRepository.deleteById(reviewId);
     }
 
+    @Override
+    public double getAverageRatingByProductId(Long productId) {
+        List<ProductReview> reviews = productReviewRepository.findByProductProductId(productId);
+        if (reviews.isEmpty()) return 0.0;
+        return reviews.stream().mapToDouble(ProductReview::getRating).average().orElse(0.0);
+    }
+
+
     private ProductReviewDTO convertToDTO(ProductReview productReview) {
         ProductReviewDTO dto = new ProductReviewDTO();
         dto.setReviewId(productReview.getReviewId());
