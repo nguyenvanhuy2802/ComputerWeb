@@ -77,6 +77,12 @@ public class CartItemService implements ICartItemService {
         cartItemRepository.deleteById(cartItemId);
     }
 
+    @Override
+    public int countCartItemsByCartId(Long cartId) {
+        return cartItemRepository.countByCart_CartId(cartId);
+    }
+
+
     private CartItemDTO convertToDTO(CartItem cartItem) {
         CartItemDTO dto = new CartItemDTO();
         dto.setCartItemId(cartItem.getCartItemId());
