@@ -1,13 +1,17 @@
 package com.example.demo.controllers;
 
+import com.example.demo.dtos.AuthResponse;
 import com.example.demo.dtos.ChangePasswordRequest;
 import com.example.demo.dtos.UserDTO;
 import com.example.demo.security.CustomUserDetails;
+import com.example.demo.security.JwtUtil;
+import com.example.demo.security.UserDetailsServiceImpl;
 import com.example.demo.services.IUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -23,6 +27,11 @@ public class UserController {
         this.userService = userService;
     }
 
+    @Autowired
+    private JwtUtil jwtUtil;
+
+    @Autowired
+    private UserDetailsServiceImpl userDetailsService;
 
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
@@ -43,15 +52,56 @@ public class UserController {
     public ResponseEntity<?> getCurrentUser(@AuthenticationPrincipal CustomUserDetails currentUser) {
         return ResponseEntity.ok(currentUser.getId());
     }
+    @PostMapping()
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> adduser(@RequestBody UserDTO userDTO) {
+        try {
+            if (userService.findByUsername(userDTO.getUsername()).isPresent()) {
+                return ResponseEntity.badRequest()
+                        .body(new AuthResponse(false, "Tên đăng nhập đã tồn tại", null));
+            }
 
+            if (userService.findByEmail(userDTO.getEmail()).isPresent()) {
+                return ResponseEntity.badRequest()
+                        .body(new AuthResponse(false, "Email đã tồn tại", null));
+            }
+
+            userService.save(userDTO);
+            return ResponseEntity.ok(new AuthResponse(true, "Đăng ký thành công", null));
+        } catch (Exception e) {
+            return ResponseEntity.status(500)
+                    .body(new AuthResponse(false, "Đăng ký thất bại: " + e.getMessage(), null));
+        }
+    }
 
     @PutMapping("/{id}/update")
     @PreAuthorize("hasRole('ADMIN') or #id == principal.id")
-    public ResponseEntity<UserDTO> updateUser(@PathVariable Long id, @RequestBody UserDTO userDTO) {
-        return userService.findById(id).map(user -> {
-            UserDTO updated = userService.update(id, userDTO);
-            return ResponseEntity.ok(updated);
-        }).orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody UserDTO userDTO) {
+
+        try {
+
+            return userService.findById(id).map(user -> {
+                if (!userDTO.getUsername().equals(user.getUsername()) &&
+                        userService.findByUsername(userDTO.getUsername()).isPresent()) {
+                    return ResponseEntity.badRequest()
+                            .body(new AuthResponse(false, "Tên đăng nhập đã tồn tại", null));
+                }
+
+                if (!userDTO.getEmail().equals(user.getEmail()) &&
+                        userService.findByEmail(userDTO.getEmail()).isPresent()) {
+                    return ResponseEntity.badRequest()
+                            .body(new AuthResponse(false, "Email đã tồn tại", null));
+                }
+
+                UserDTO updated = userService.update(id, userDTO);
+                UserDetails userDetails = userDetailsService.loadUserByUsername(updated.getUsername());
+                String token = jwtUtil.generateToken(userDetails);
+                return ResponseEntity.ok(new AuthResponse(true, "Đổi thông tin thành công", token));
+            }).orElse(ResponseEntity.notFound().build());
+        } catch (Exception e) {
+            return ResponseEntity.status(500)
+                    .body(new AuthResponse(false, "Đổi thông thất bại: " + e.getMessage(), null));
+        }
     }
 
     @DeleteMapping("/{id}/delete")

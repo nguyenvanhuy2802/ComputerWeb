@@ -15,6 +15,9 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
@@ -44,7 +47,7 @@ public class AuthController {
             );
 
             UserDetails userDetails = userDetailsService.loadUserByUsername(authRequest.getUsername());
-            String token = jwtUtil.generateToken(userDetails.getUsername());
+            String token = jwtUtil.generateToken(userDetails);
 
             return ResponseEntity.ok(new AuthResponse(true, "Đăng nhập thành công", token));
         } catch (BadCredentialsException e) {
@@ -67,8 +70,9 @@ public class AuthController {
                         .body(new AuthResponse(false, "Email đã tồn tại", null));
             }
 
-            UserDTO savedUser = userService.save(userDTO);  
-            String token = jwtUtil.generateToken(savedUser.getUsername());
+            UserDTO savedUser = userService.save(userDTO);
+            UserDetails userDetails = userDetailsService.loadUserByUsername(userDTO.getUsername());
+            String token = jwtUtil.generateToken(userDetails);
 
             return ResponseEntity.ok(new AuthResponse(true, "Đăng ký thành công", token));
         } catch (Exception e) {
@@ -91,8 +95,12 @@ public class AuthController {
     @PostMapping("/verify-otp")
     public ResponseEntity<?> verifyOtp(@RequestBody @Valid VerifyOtpReq verifyOtpReq) {
         try {
-            String tempToken = forgotPasswordService.verifyOtpAndGenerateTempToken(verifyOtpReq.getEmail(), verifyOtpReq.getOtp());
-            return ResponseEntity.ok("OTP hợp lệ. Temp Token: " + tempToken);
+            String tempToken = forgotPasswordService.verifyOtpAndGenerateTempToken(
+                    verifyOtpReq.getEmail(), verifyOtpReq.getOtp()
+            );
+            Map<String, String> response = new HashMap<>();
+            response.put("tempToken", tempToken);
+            return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
