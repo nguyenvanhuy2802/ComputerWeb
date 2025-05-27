@@ -10,4 +10,6 @@ public interface ICartItemService {
     CartItemDTO addCartItem(Long cartId, Long productId, int quantity);
     CartItemDTO updateCartItem(Long cartItemId, int quantity);
     void removeCartItem(Long cartItemId);
+    int countCartItemsByCartId(Long cartId);
+
 }

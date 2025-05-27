@@ -82,7 +82,8 @@ public class SecurityConfig {
                                 "/api/products",
                                 "/api/reviews",
                                 "/api/reviews/product/*",
-                                "/api/reviews/product/*/average").permitAll()
+                                "/api/reviews/product/*/average",
+                                "/api/carts/customer/*").permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
