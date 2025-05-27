@@ -49,7 +49,15 @@ public class CartItemController {
         return ResponseEntity.ok(addedItem);
     }
 
-    // ✏️ Cập nhật số lượng sản phẩm
+    //  Đếm số lượng sản phẩm trong giỏ hàng theo cartId
+    @GetMapping("/cart/{cartId}/count")
+    public ResponseEntity<Integer> countCartItems(@PathVariable Long cartId) {
+        int count = cartItemService.countCartItemsByCartId(cartId);
+        return ResponseEntity.ok(count);
+    }
+
+
+    // Cập nhật số lượng sản phẩm
     @PutMapping("/{cartItemId}")
     public ResponseEntity<CartItemDTO> updateCartItem(
             @PathVariable Long cartItemId,
@@ -59,7 +67,7 @@ public class CartItemController {
         return ResponseEntity.ok(updatedItem);
     }
 
-    // ❌ Xoá sản phẩm khỏi giỏ
+    // Xoá sản phẩm khỏi giỏ
     @DeleteMapping("/{cartItemId}")
     public ResponseEntity<Void> deleteCartItem(@PathVariable Long cartItemId) {
         cartItemService.removeCartItem(cartItemId);

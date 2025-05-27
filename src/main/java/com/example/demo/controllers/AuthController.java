@@ -74,7 +74,7 @@ public class AuthController {
             UserDetails userDetails = userDetailsService.loadUserByUsername(userDTO.getUsername());
             String token = jwtUtil.generateToken(userDetails);
 
-            return ResponseEntity.ok(new AuthResponse(true, "Đăng ký thành công", token));
+            return ResponseEntity.ok(new AuthResponse(true, "Đăng ký thành công", String.valueOf(savedUser.getUserId())));
         } catch (Exception e) {
             return ResponseEntity.status(500)
                     .body(new AuthResponse(false, "Đăng ký thất bại: " + e.getMessage(), null));
