@@ -62,6 +62,7 @@ public class OrderService implements IOrderService {
                 .buyerName(orderDTO.getBuyerName())
                 .deliveryAddress(orderDTO.getDeliveryAddress())
                 .totalAmount(orderDTO.getTotalAmount())
+//                .orderDate(LocalDateTime.now())              // <--- Cần thêm dòng này
                 .status(OrderStatus.PENDING)
                 .build();
 
