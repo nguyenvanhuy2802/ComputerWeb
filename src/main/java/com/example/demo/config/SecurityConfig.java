@@ -80,6 +80,7 @@ public class SecurityConfig {
                         .requestMatchers(  "/api/auth/**",
                                 "/api/categories",
                                 "/api/products",
+                                "/api/products/*",
                                 "/api/reviews",
                                 "/api/reviews/product/*",
                                 "/api/reviews/product/*/average",
