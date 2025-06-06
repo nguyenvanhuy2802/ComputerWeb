@@ -51,7 +51,6 @@ public class OrderController {
 
     // Tạo đơn hàng mới
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<OrderDTO> createOrder(@RequestBody OrderDTO orderDTO) {
         return ResponseEntity.ok(orderService.createOrder(orderDTO));
     }
