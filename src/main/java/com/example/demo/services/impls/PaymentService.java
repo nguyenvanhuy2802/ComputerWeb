@@ -9,6 +9,7 @@ import com.example.demo.services.IPaymentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -68,7 +69,7 @@ public class PaymentService implements IPaymentService {
         payment.setAmount(dto.getAmount());
         payment.setPaymentMethod(dto.getPaymentMethod());
         payment.setStatus(dto.getStatus());
-
+        payment.setPaymentDate(LocalDateTime.now());
         return convertToDTO(paymentRepository.save(payment));
     }
 
