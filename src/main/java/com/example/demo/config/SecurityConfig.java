@@ -79,8 +79,9 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(  "/api/auth/**",
                                 "/api/categories",
+                                "/api/categories/*",
                                 "/api/products",
-                                "/api/products/*",
+                                "/api/products/**",
                                 "/api/reviews",
                                 "/api/reviews/product/*",
                                 "/api/reviews/product/*/average",

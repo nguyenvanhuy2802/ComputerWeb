@@ -1,14 +1,20 @@
 package com.example.demo.controllers;
 
 import com.example.demo.dtos.ProductDTO;
+import com.example.demo.dtos.ProductWithRating;
 import com.example.demo.services.IProductService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/products")
@@ -44,6 +50,35 @@ public class ProductController {
     public ResponseEntity<List<ProductDTO>> searchProducts(@RequestParam String keyword) {
         return ResponseEntity.ok(productService.searchByName(keyword));
     }
+
+    // ✅ Tìm kiếm theo tên (có chứa keyword)
+    @GetMapping("/search-filter")
+    public ResponseEntity<List<ProductWithRating>> searchProducts(
+            @RequestParam String query,
+            @RequestParam(required = false) String priceRange,
+            @RequestParam(required = false) String sortBy
+    ) {
+        return ResponseEntity.ok(productService.searchProducts(query, priceRange, sortBy));
+    }
+
+    @GetMapping("/paginated")
+    public ResponseEntity<Map<String, Object>> getPaginatedProducts(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<ProductDTO> dtoPage = productService.getPaginatedProducts(pageable);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("content", dtoPage.getContent());
+        response.put("currentPage", dtoPage.getNumber());
+        response.put("totalItems", dtoPage.getTotalElements());
+        response.put("totalPages", dtoPage.getTotalPages());
+        response.put("last", dtoPage.isLast());
+
+        return ResponseEntity.ok(response);
+    }
+
+
 
     // ✅ Tìm theo khoảng giá
     @GetMapping("/price-range")
