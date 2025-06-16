@@ -118,7 +118,19 @@ public class UserService implements IUserService {
 
         return convertToDTO(userRepository.save(user));
     }
+    @Override
+    public UserDTO changeInfor(Long userId, UserDTO userDTO) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
+        user.setName(userDTO.getName());
+        user.setEmail(userDTO.getEmail());
+        user.setPhone(userDTO.getPhone());
+        user.setAddress(userDTO.getAddress());
+        user.setProfileImage(userDTO.getProfileImage());
+
+        return convertToDTO(userRepository.save(user));
+    }
     @Override
     public void deleteById(Long userId) {
         userRepository.deleteById(userId);

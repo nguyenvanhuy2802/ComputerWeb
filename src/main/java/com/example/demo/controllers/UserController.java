@@ -149,5 +149,24 @@ public class UserController {
     ) {
         return ResponseEntity.ok(userService.getOrderedPart(limit, offset, orderBy, orderDir));
     }
+    @PutMapping("/{id}/changeInfor")
+    @PreAuthorize("hasRole('ADMIN') or #id == principal.id")
+    public ResponseEntity<?> changeInfor(@PathVariable Long id, @RequestBody UserDTO userDTO) {
+        try {
+            return userService.findById(id).map(user -> {
+                if (!userDTO.getEmail().equals(user.getEmail()) &&
+                        userService.findByEmail(userDTO.getEmail()).isPresent()) {
+                    return ResponseEntity.badRequest()
+                            .body(new AuthResponse(false, "Email đã tồn tại", null));
+                }
 
+                UserDTO updated = userService.changeInfor(id, userDTO);
+
+                return ResponseEntity.ok(new AuthResponse(true, "Đổi thông tin thành công",null));
+            }).orElse(ResponseEntity.notFound().build());
+        } catch (Exception e) {
+            return ResponseEntity.status(500)
+                    .body(new AuthResponse(false, "Đổi thông thất bại: " + e.getMessage(), null));
+        }
+    }
 }
