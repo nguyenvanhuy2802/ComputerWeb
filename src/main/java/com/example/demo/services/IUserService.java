@@ -15,5 +15,8 @@ public interface IUserService {
     void changePassword(long userId, String oldPassword, String newPassword);
     UserDTO save(UserDTO userDTO);
     UserDTO update(Long userId, UserDTO userDTO);
+
+    UserDTO changeInfor(Long userId, UserDTO userDTO);
+
     void deleteById(Long userId);
 }
