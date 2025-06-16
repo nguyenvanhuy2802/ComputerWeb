@@ -1,15 +1,19 @@
 package com.example.demo.services.impls;
 
 import com.example.demo.dtos.ProductDTO;
+import com.example.demo.dtos.ProductWithRating;
 import com.example.demo.models.Category;
 import com.example.demo.models.Product;
 import com.example.demo.repositories.CategoryRepository;
 import com.example.demo.repositories.ProductRepository;
 import com.example.demo.services.IProductService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -19,11 +23,13 @@ public class ProductService implements IProductService {
 
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
+    private final ProductReviewService productReviewService;
 
     @Autowired
-    public ProductService(ProductRepository productRepository, CategoryRepository categoryRepository) {
+    public ProductService(ProductRepository productRepository, CategoryRepository categoryRepository, ProductReviewService productReviewService) {
         this.productRepository = productRepository;
         this.categoryRepository = categoryRepository;
+        this.productReviewService = productReviewService;
     }
 
     @Override
@@ -49,6 +55,66 @@ public class ProductService implements IProductService {
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
     }
+
+    @Override
+    public List<ProductWithRating> searchProducts(String query, String priceRange, String sortBy) {
+        List<Product> products = productRepository.findByNameContainingIgnoreCase(query);
+
+        // ✅ Lọc theo khoảng giá
+        if (priceRange != null && priceRange.contains("-")) {
+            String[] parts = priceRange.split("-");
+            try {
+                double min = Double.parseDouble(parts[0]);
+                double max = Double.parseDouble(parts[1]);
+                products = products.stream()
+                        .filter(p -> p.getPrice().doubleValue() >= min && p.getPrice().doubleValue() <= max)
+                        .toList();
+            } catch (NumberFormatException e) {
+                // log warning nếu cần
+            }
+        }
+
+        // ✅ Chuyển sang DTO (kèm rating)
+        List<ProductWithRating> dtos = products.stream()
+                .map(product -> {
+                    double rating = productReviewService.getAverageRatingByProductId(product.getProductId());
+                    ProductWithRating dto = new ProductWithRating();
+                    dto.setProductId(product.getProductId());
+                    dto.setName(product.getName());
+                    dto.setDescription(product.getDescription());
+                    dto.setPrice(product.getPrice().doubleValue()); // chuyển từ BigDecimal
+                    dto.setStockQuantity(product.getStockQuantity());
+                    dto.setCategoryId(product.getCategory() != null ? product.getCategory().getCategoryId() : null);
+                    dto.setProductImage(product.getProductImage());
+                    dto.setAverageRating(rating);
+                    return dto;
+                })
+                .collect(Collectors.toList());
+
+        // ✅ Sắp xếp nếu có
+        if (sortBy != null) {
+            switch (sortBy) {
+                case "price-asc":
+                    dtos.sort(Comparator.comparing(ProductWithRating::getPrice));
+                    break;
+                case "price-desc":
+                    dtos.sort(Comparator.comparing(ProductWithRating::getPrice).reversed());
+                    break;
+                case "rating":
+                    dtos.sort(Comparator.comparing(ProductWithRating::getAverageRating).reversed());
+                    break;
+            }
+        }
+
+        return dtos;
+    }
+
+    @Override
+    public Page<ProductDTO> getPaginatedProducts(Pageable pageable) {
+        return productRepository.findAll(pageable)
+                .map(this::convertToDTO);
+    }
+
 
     @Override
     public List<ProductDTO> findByPriceRange(BigDecimal minPrice, BigDecimal maxPrice) {
