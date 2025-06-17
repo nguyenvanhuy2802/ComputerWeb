@@ -62,6 +62,12 @@ public class OrderController {
         return ResponseEntity.ok(orderService.updateOrderStatus(orderId, status));
     }
 
+    // Cập nhật trạng thái đơn hàng
+    @PutMapping("/{orderId}/pending-status")
+    public ResponseEntity<OrderDTO> updateOrderStatusWithUser(@PathVariable Long orderId, @RequestParam OrderStatus status) {
+        return ResponseEntity.ok(orderService.updateOrderStatusWithUser(orderId, status));
+    }
+
     // Xóa đơn hàng
     @DeleteMapping("/{orderId}")
     @PreAuthorize("hasRole('ADMIN')")

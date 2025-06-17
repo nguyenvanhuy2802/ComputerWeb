@@ -1,6 +1,8 @@
 package com.example.demo.services.impls;
 
 import com.example.demo.dtos.PaymentDTO;
+import com.example.demo.enums.PaymentMethod;
+import com.example.demo.enums.PaymentStatus;
 import com.example.demo.models.Order;
 import com.example.demo.models.Payment;
 import com.example.demo.repositories.OrderRepository;
@@ -76,6 +78,14 @@ public class PaymentService implements IPaymentService {
     @Override
     public void deletePayment(Long paymentId) {
         paymentRepository.deleteById(paymentId);
+    }
+
+    @Override
+    public List<PaymentDTO> getPaymentsByMethodAndStatus(PaymentMethod method, PaymentStatus status) {
+        return paymentRepository.findByPaymentMethodAndStatus(method, status)
+                .stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
     }
 
     private PaymentDTO convertToDTO(Payment payment) {

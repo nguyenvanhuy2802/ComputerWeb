@@ -83,6 +83,10 @@ public class SecurityConfig {
                                 "/api/products",
                                 "/api/products/**",
                                 "/api/reviews",
+                                "api/qr/generate",
+//                                "api/payments/order/*",
+                                "api/payments/qr-pending",
+                                "api/orders/*/pending-status",
                                 "/api/reviews/product/*",
                                 "/api/reviews/product/*/average",
                                 "/api/carts/customer/*").permitAll()

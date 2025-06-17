@@ -1,6 +1,8 @@
 package com.example.demo.controllers;
 
 import com.example.demo.dtos.PaymentDTO;
+import com.example.demo.enums.PaymentMethod;
+import com.example.demo.enums.PaymentStatus;
 import com.example.demo.services.IPaymentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -49,9 +51,18 @@ public class PaymentController {
         return ResponseEntity.ok(paymentService.updatePayment(id, dto));
     }
 
+    @GetMapping("/qr-pending")
+    public ResponseEntity<List<PaymentDTO>> getQrPendingPayments() {
+        return ResponseEntity.ok(
+                paymentService.getPaymentsByMethodAndStatus(PaymentMethod.QR_PAYMENT, PaymentStatus.PENDING)
+        );
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletePayment(@PathVariable Long id) {
         paymentService.deletePayment(id);
         return ResponseEntity.noContent().build();
     }
+
+
 }
