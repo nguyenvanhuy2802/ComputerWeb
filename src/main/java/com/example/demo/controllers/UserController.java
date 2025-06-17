@@ -52,7 +52,7 @@ public class UserController {
     public ResponseEntity<?> getCurrentUser(@AuthenticationPrincipal CustomUserDetails currentUser) {
         return ResponseEntity.ok(currentUser.getId());
     }
-    @PostMapping()
+    @PostMapping() 
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> adduser(@RequestBody UserDTO userDTO) {
         try {

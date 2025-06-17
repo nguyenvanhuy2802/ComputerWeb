@@ -31,7 +31,7 @@ public class ProductReviewService implements IProductReviewService {
 
     @Override
     public List<ProductReviewDTO> getAllReviews() {
-        return productReviewRepository.findAll().stream()
+        return productReviewRepository.findAllByOrderByCreatedAtDesc().stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
     }

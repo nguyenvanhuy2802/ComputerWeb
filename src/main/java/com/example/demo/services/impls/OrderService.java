@@ -27,7 +27,7 @@ public class OrderService implements IOrderService {
 
     @Override
     public List<OrderDTO> getAllOrders() {
-        return orderRepository.findAll().stream()
+        return orderRepository.findAllByOrderByOrderDateDesc().stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
     }
@@ -70,13 +70,27 @@ public class OrderService implements IOrderService {
     }
 
     @Override
-    public OrderDTO updateOrderStatus(Long orderId, OrderStatus status) {
+    public OrderDTO updateOrderStatusWithUser(Long orderId, OrderStatus status) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Order not found"));
 
         order.setStatus(status);
         return convertToDTO(orderRepository.save(order));
     }
+    public OrderDTO updateOrderStatus(Long orderId, OrderStatus newStatus) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng với ID: " + orderId));
+
+        OrderStatus currentStatus = order.getStatus();
+        if (newStatus == OrderStatus.CANCELED && currentStatus != OrderStatus.PENDING) {
+            throw new IllegalStateException("Chỉ có thể hủy đơn hàng đang chờ xử lý.");
+        }
+
+        order.setStatus(newStatus);
+        orderRepository.save(order);
+        return convertToDTO(orderRepository.save(order));
+    }
+
 
     @Override
     public void deleteOrder(Long orderId) {
